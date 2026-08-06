@@ -1,0 +1,16 @@
+{
+  "name": "snoopy-platformer",
+  "version": "1.0.0",
+  "description": "Juego de plataformas 2D inspirado en Snoopy, hecho con Phaser 3. Optimizado para dispositivos moviles con controles tactiles.",
+  "main": "index.html",
+  "scripts": {
+    "start": "http-server -c-1 -p 8080",
+    "dev": "http-server -c-1 -p 8080 -o"
+  },
+  "keywords": ["phaser", "juego", "plataformas", "snoopy", "movil"],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
