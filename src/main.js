@@ -5,11 +5,29 @@
  *
  * `input.activePointers: 3` es clave para movil: por defecto Phaser solo trackea 2 punteros
  * simultaneos, lo que impide sostener "izquierda" y tocar "salto" al mismo tiempo con dos dedos.
+ *
+ * Nota sobre pantalla completa: con un lienzo fijo de 800x600 (4:3), Scale.FIT dejaba barras
+ * negras a los lados en telefonos modernos (mucho mas anchos, ~19:9 o ~20:9). La alternativa
+ * comun, Scale.ENVELOP (recortar para cubrir toda la pantalla), se probo y en esos telefonos
+ * recorta ~120px de la parte de arriba Y de abajo del juego -> tapaba los corazones/boton de
+ * pausa arriba y los controles tactiles abajo. En vez de recortar, el ANCHO del lienzo se
+ * calcula al vuelo segun el aspecto real de la pantalla (el alto se deja fijo en 600, del que
+ * depende toda la logica del piso/plataformas/HUD). Como el mundo de cada nivel ya es mucho
+ * mas ancho que la camara y esta lo sigue, un lienzo mas ancho simplemente muestra mas nivel a
+ * los lados -> pantalla completa, sin barras y sin recortar nada.
  */
+function computeGameWidth() {
+  const aspect = window.innerWidth / window.innerHeight;
+  const width = Math.round(600 * aspect);
+  return Phaser.Math.Clamp(width, 700, 1500);
+}
+
+const initialWidth = computeGameWidth();
+
 const config = {
   type: Phaser.AUTO,
   parent: 'game-container',
-  width: 800,
+  width: initialWidth,
   height: 600,
   backgroundColor: '#1a1a2e',
   pixelArt: false,
@@ -23,12 +41,12 @@ const config = {
   scale: {
     mode: Phaser.Scale.FIT,
     autoCenter: Phaser.Scale.CENTER_BOTH,
-    width: 800,
+    width: initialWidth,
     height: 600
   },
   input: {
     // Punteros simultaneos. Con el valor por defecto (1 tactil) es imposible sostener
-    // "izquierda" y tocar "salto" a la vez. Se deja holgura para 3 dedos.
+    // "izquierda" y tocar "salto" al mismo tiempo con dos dedos.
     activePointers: 4
   },
   scene: [BootScene, MenuScene, WorldMapScene, GameScene, PauseScene, VictoryScene]
@@ -38,15 +56,15 @@ window.addEventListener('load', () => {
   const game = new Phaser.Game(config);
 
   /**
-   * Phaser convierte la posicion del dedo a coordenadas del juego usando la caja del lienzo
-   * (posicion + tamano en pantalla). Si esa caja queda desactualizada -algo habitual cuando el
-   * lienzo se escala y se centra con margenes, al girar el telefono o al cambiar de dispositivo
-   * en las herramientas del navegador- los toques se mapean a un punto equivocado y los botones
-   * en pantalla dejan de responder, aunque el teclado siga funcionando. refresh() la recalcula.
+   * Al girar el telefono o cambiar de ventana el aspecto cambia, asi que hay que recalcular el
+   * ancho del lienzo (no solo re-centrarlo) para que siga llenando la pantalla sin barras.
+   * game.scale.resize() ya deja todo consistente (incluida la caja usada para mapear toques),
+   * asi que no hace falta llamar a refresh() por separado.
    */
-  const refreshScale = () => game.scale.refresh();
+  const adaptToScreen = () => {
+    game.scale.resize(computeGameWidth(), 600);
+  };
 
-  window.addEventListener('resize', refreshScale);
-  window.addEventListener('scroll', refreshScale, { passive: true });
-  window.addEventListener('orientationchange', () => setTimeout(refreshScale, 120));
+  window.addEventListener('resize', adaptToScreen);
+  window.addEventListener('orientationchange', () => setTimeout(adaptToScreen, 120));
 });
