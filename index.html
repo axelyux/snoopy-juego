@@ -31,21 +31,27 @@
     }
 
     /*
-      El juego es horizontal (800x600). En vertical el lienzo queda como una franja diminuta
-      con enormes bandas negras y es injugable, asi que en esa orientacion se tapa todo con un
-      aviso para girar el telefono. Solo aplica a pantallas de movil: en un monitor vertical
-      grande el juego se ve bien igual.
+      El juego es horizontal. En vertical el lienzo queda como una franja diminuta y es
+      injugable, asi que en esa orientacion se tapa con un aviso para girar el telefono.
+      Solo aplica a pantallas de movil.
+
+      IMPORTANTE: el aviso se superpone con position:fixed en vez de ocultar #game-container
+      con display:none. Ocultarlo dejaba al contenedor sin dimensiones medibles, y Phaser
+      -que calcula la escala del lienzo a partir del tamano de su contenedor- se quedaba con
+      medidas obsoletas de cuando estaba en vertical. Al girar el telefono el juego se
+      redimensionaba mal y quedaba como una columna estrecha con bandas a los lados.
     */
     #rotate-overlay {
       display: none;
     }
 
     @media (orientation: portrait) and (max-width: 900px) {
-      #game-container {
-        display: none;
-      }
-
       #rotate-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        z-index: 10;
+        background: #1a1a2e;
         display: flex;
         flex-direction: column;
         justify-content: center;

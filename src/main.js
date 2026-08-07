@@ -63,7 +63,23 @@ window.addEventListener('load', () => {
    * (incluida la caja usada para mapear toques).
    */
   const adaptToScreen = () => {
-    game.scale.resize(computeGameWidth(), 600);
+    const width = computeGameWidth();
+
+    // getParentBounds() vuelve a medir el contenedor antes de redimensionar: sin esto Phaser
+    // puede usar medidas viejas (por ejemplo las de cuando el telefono estaba en vertical).
+    game.scale.getParentBounds();
+
+    // Phaser fija la PROPORCION del lienzo al arrancar y resize() no la actualiza: internamente
+    // redimensiona pero sigue dibujando con la proporcion original. Si la pagina se abrio en
+    // vertical (ancho minimo 700 -> 700/600) y luego se gira, el juego quedaba encajado en esa
+    // proporcion vieja: una columna estrecha con bandas a los lados, justo el sintoma reportado
+    // en el telefono. Hay que actualizarla explicitamente.
+    game.scale.displaySize.setAspectRatio(width / 600);
+
+    game.scale.resize(width, 600);
+
+    // Recalcula la escala de dibujo y la caja que mapea los toques a coordenadas del juego.
+    game.scale.refresh();
   };
 
   window.addEventListener('resize', adaptToScreen);
