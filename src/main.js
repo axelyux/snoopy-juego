@@ -56,15 +56,29 @@ window.addEventListener('load', () => {
   const game = new Phaser.Game(config);
 
   /**
-   * Al girar el telefono o cambiar de ventana el aspecto cambia, asi que hay que recalcular el
-   * ancho del lienzo (no solo re-centrarlo) para que siga llenando la pantalla sin barras.
-   * game.scale.resize() ya deja todo consistente (incluida la caja usada para mapear toques),
-   * asi que no hace falta llamar a refresh() por separado.
+   * Al girar el telefono, cambiar de ventana, o cuando la barra de direcciones movil aparece
+   * o desaparece (Safari/Chrome la ocultan al hacer scroll, cambiando el alto disponible sin
+   * que sea un "resize" clasico), hay que recalcular el ANCHO del lienzo -no solo re-centrarlo-
+   * para que siga llenando la pantalla sin barras. game.scale.resize() ya deja todo consistente
+   * (incluida la caja usada para mapear toques).
    */
   const adaptToScreen = () => {
     game.scale.resize(computeGameWidth(), 600);
   };
 
   window.addEventListener('resize', adaptToScreen);
-  window.addEventListener('orientationchange', () => setTimeout(adaptToScreen, 120));
+  window.addEventListener('orientationchange', () => setTimeout(adaptToScreen, 150));
+
+  // visualViewport es la API pensada especificamente para el caso de arriba (barra de
+  // direcciones movil apareciendo/ocultandose): window.innerHeight no siempre se actualiza a
+  // tiempo o dispara 'resize' en ese momento en todos los navegadores moviles, pero
+  // visualViewport si. Se usa ademas de 'resize', no en su lugar, por si algun navegador no
+  // la soporta (entonces simplemente no se registra este listener extra).
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', adaptToScreen);
+  }
+
+  // La barra de direcciones movil a veces termina de acomodarse unos ms despues del evento
+  // 'load'; un reintento corto cubre ese caso sin depender de que el usuario mueva el telefono.
+  setTimeout(adaptToScreen, 300);
 });
